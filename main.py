@@ -9,7 +9,7 @@ def generate_tip(student_data):
         return "Improve attendance to at least 75%."
     elif student_data["Internal_Assessment_1"] < 20 or student_data["Internal_Assessment_2"] < 20:
         return "Focus on improving internal assessment scores."
-    elif student_data["Participation_Score"] < 2:
+    elif student_data["Participation_Score"] < 1:
         return "Increase participation in class activities."
     else:
         return "Keep up the good work!"
