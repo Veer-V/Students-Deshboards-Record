@@ -7,7 +7,7 @@ import joblib
 def generate_tip(student_data):
     if student_data["Attendance_Percentage"] < 75:
         return "Improve attendance to at least 75%."
-    elif student_data["Internal_Assessment_1"] < 50 or student_data["Internal_Assessment_2"] < 50:
+    elif student_data["Internal_Assessment_1"] < 30 or student_data["Internal_Assessment_2"] < 30:
         return "Focus on improving internal assessment scores."
     elif student_data["Participation_Score"] < 3:
         return "Increase participation in class activities."
