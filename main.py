@@ -5,14 +5,14 @@ import pandas as pd
 import joblib
 
 def generate_tip(student_data):
-    if student_data["Attendance_Percentage"] < 75:
-        return "Improve attendance to at least 75%."
-    elif student_data["Internal_Assessment_1"] < 20 or student_data["Internal_Assessment_2"] < 20:
-        return "Focus on improving internal assessment scores."
-    elif student_data["Participation_Score"] < 1:
-        return "Increase participation in class activities."
-    else:
-        return "Keep up the good work!"
+    tips = []
+    if student_data["Attendance_Percentage"] < 60:
+        tips.append("Improve attendance.")
+    if student_data["Internal_Assessment_1"] < 15:
+        tips.append("Focus on Internal 1 topics.")
+    if student_data["Participation_Score"] < 5:
+        tips.append("Engage more in class.")
+    return " | ".join(tips) if tips else "You're on track!"
     
 # Load model and data
 model = joblib.load("model_pipeline.pkl")  # save model earlier using joblib
@@ -32,7 +32,7 @@ features = [[
 ]]
 
 prediction = model.predict(features)[0]
-result = "✅ Pass" if prediction == 0 else "❌ Fail"
+result = "✅ Pass" if prediction >= 15 else "❌ Fail"
 
 st.subheader(f"Result: {result}")
 st.write(f"📊 Recommendation: {generate_tip(student_data)}")
