@@ -1,5 +1,5 @@
 Student_ID,Name,Internal_Assessment_1,Internal_Assessment_2,Attendance_Percentage,Previous_Semester_Grade,Participation_Score,Final_Exam_Score
-S001,Student_1,30,30,100,10,10,30
+S001,Student_1,100,100,100,100,100,100
 S002,Student_2,16,18,55,4.93,6,12.75
 S003,Student_3,18,24,75,6.89,3,18.01
 S004,Student_4,11,24,83,7.2,5,13.4
