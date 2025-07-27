@@ -32,7 +32,7 @@ features = [[
 ]]
 
 prediction = model.predict(features)[0]
-result = "✅ Pass" if prediction == 1 else "❌ Fail"
+result = "✅ Pass" if prediction == 0 else "❌ Fail"
 
 st.subheader(f"Result: {result}")
 st.write(f"📊 Recommendation: {generate_tip(student_data)}")
