@@ -1,5 +1,3 @@
-# Save as app.py
-
 import streamlit as st
 import pandas as pd
 import joblib
@@ -23,6 +21,42 @@ def generate_tip(student_data):
 model = joblib.load("model_pipeline.pkl")
 df = pd.read_csv("student_performance_60.csv")
 
+# Light/Dark mode toggle
+if "dark_mode" not in st.session_state:
+    st.session_state.dark_mode = False
+
+def toggle_mode():
+    st.session_state.dark_mode = not st.session_state.dark_mode
+
+mode_label = "🌙 Dark Mode" if not st.session_state.dark_mode else "☀️ Light Mode"
+st.sidebar.button(mode_label, on_click=toggle_mode)
+
+# Apply theme colors based on mode
+if st.session_state.dark_mode:
+    bg_color = "#0E1117"
+    text_color = "#FFFFFF"
+    chart_color_scale = "darkmint"
+else:
+    bg_color = "#FFFFFF"
+    text_color = "#000000"
+    chart_color_scale = "blues"
+
+st.markdown(
+    f"""
+    <style>
+    .reportview-container {{
+        background-color: {bg_color};
+        color: {text_color};
+    }}
+    .sidebar .sidebar-content {{
+        background-color: {bg_color};
+        color: {text_color};
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 st.title("📊 Student Performance Dashboard")
 st.markdown("Analyze student progress, identify risks, and provide recommendations.")
 
@@ -44,7 +78,15 @@ with col3:
 st.markdown("---")
 
 # Student selection
-selected_student = st.selectbox("🎓 Select a Student", df["Name"])
+# Search bar
+search_term = st.text_input("🔍 Search Student by Name:")
+filtered_df = df[df["Name"].str.contains(search_term, case=False, na=False)] if search_term else df
+
+# Student selection
+selected_student = st.selectbox("🎓 Select a Student", filtered_df["Name"])
+
+student_data = df[df["Name"] == selected_student].iloc[0]
+
 
 student_data = df[df["Name"] == selected_student].iloc[0]
 features = [[
@@ -78,8 +120,27 @@ chart_df = pd.DataFrame({
         student_data["Participation_Score"]
     ]
 })
-fig = px.bar(chart_df, x="Metrics", y="Values", color="Values", text="Values", height=350)
+fig = px.bar(chart_df, x="Metrics", y="Values", color="Values", text="Values", height=350, color_continuous_scale=chart_color_scale)
 st.plotly_chart(fig, use_container_width=True)
+
+# Additional prediction graphs
+st.markdown("### 📈 Prediction Insights")
+
+# Prediction distribution histogram
+predictions = model.predict(df[[
+    "Internal_Assessment_1", "Internal_Assessment_2",
+    "Attendance_Percentage", "Previous_Semester_Grade",
+    "Participation_Score"
+]])
+pred_df = pd.DataFrame({"Prediction Score": predictions})
+fig2 = px.histogram(pred_df, x="Prediction Score", nbins=20, title="Prediction Score Distribution", color_discrete_sequence=["#636EFA"] if not st.session_state.dark_mode else ["#00CC96"])
+st.plotly_chart(fig2, use_container_width=True)
+
+# Pass/Fail count pie chart
+pass_fail_counts = pd.Series(predictions >= 15).value_counts().rename({True: "Pass", False: "Fail"})
+fig3 = px.pie(names=pass_fail_counts.index, values=pass_fail_counts.values, title="Pass vs Fail Prediction", color=pass_fail_counts.index,
+              color_discrete_map={"Pass": "#00CC96", "Fail": "#EF553B"})
+st.plotly_chart(fig3, use_container_width=True)
 
 # Upload new data
 st.markdown("---")
@@ -87,10 +148,10 @@ uploaded_file = st.file_uploader("📤 Upload updated student data (.csv)", type
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
     st.success("✅ Data updated successfully! Refresh the page to reload.")
-# Save the updated DataFrame to a new CSV file
+    # Save the updated DataFrame to a new CSV file
     df.to_csv("updated_student_performance.csv", index=False)
     st.write("Updated data saved as 'updated_student_performance.csv'.")    
-# Add a download button for the updated CSV
+    # Add a download button for the updated CSV
     st.download_button(
         label="Download Updated Data",
         data=df.to_csv(index=False).encode('utf-8'),
@@ -99,3 +160,4 @@ if uploaded_file is not None:
     )
 # Add a footer
 st.markdown("---")
+st.markdown("© 2025 Student Performance Dashboard. All rights reserved.")

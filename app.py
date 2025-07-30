@@ -78,7 +78,15 @@ with col3:
 st.markdown("---")
 
 # Student selection
-selected_student = st.selectbox("🎓 Select a Student", df["Name"])
+# Search bar
+search_term = st.text_input("🔍 Search Student by Name:")
+filtered_df = df[df["Name"].str.contains(search_term, case=False, na=False)] if search_term else df
+
+# Student selection
+selected_student = st.selectbox("🎓 Select a Student", filtered_df["Name"])
+
+student_data = df[df["Name"] == selected_student].iloc[0]
+
 
 student_data = df[df["Name"] == selected_student].iloc[0]
 features = [[
