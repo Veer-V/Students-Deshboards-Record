@@ -5,8 +5,14 @@ import pandas as pd
 import joblib
 import numpy as np
 import plotly.express as px
+import plotly.graph_objects as go
 
 st.set_page_config(page_title="Student Dashboard", layout="wide")
+
+# Theme toggle
+theme = st.sidebar.radio("Choose Theme", ["🌞 Light", "🌙 Dark"])
+custom_color = "#F0F2F6" if theme == "🌞 Light" else "#0E1117"
+st.markdown(f"""<style>body{{background-color: {custom_color};}}</style>""", unsafe_allow_html=True)
 
 # Function to generate smart tips
 def generate_tip(student_data):
@@ -58,15 +64,15 @@ features = [[
 prediction = model.predict(features)[0]
 result = "✅ Pass" if prediction >= 15 else "❌ Fail"
 
-# Display result with colors
+# Display result
 st.subheader(f"🎯 Prediction Result: {'🟢' if prediction >= 15 else '🔴'} {result}")
 st.markdown(f"**💡 Recommendation:** {generate_tip(student_data)}")
 
-# Expandable section for detailed data
+# Expandable section
 with st.expander("📋 View Student Details"):
     st.dataframe(pd.DataFrame([student_data]))
 
-# Charts (Bar)
+# --- Performance Breakdown Chart ---
 st.markdown("### 📊 Performance Breakdown")
 chart_df = pd.DataFrame({
     "Metrics": ["Internal 1", "Internal 2", "Attendance", "Previous Grade", "Participation"],
@@ -78,17 +84,37 @@ chart_df = pd.DataFrame({
         student_data["Participation_Score"]
     ]
 })
-fig = px.bar(chart_df, x="Metrics", y="Values", color="Values", text="Values", height=350)
-st.plotly_chart(fig, use_container_width=True)
+bar_fig = px.bar(chart_df, x="Metrics", y="Values", color="Values", text="Values", height=350)
+st.plotly_chart(bar_fig, use_container_width=True)
 
-# Upload new data
+# --- Pass/Fail Pie Chart ---
+st.markdown("### 🧮 Pass vs Fail Distribution")
+predictions = model.predict(df[[
+    "Internal_Assessment_1", "Internal_Assessment_2",
+    "Attendance_Percentage", "Previous_Semester_Grade",
+    "Participation_Score"
+]])
+pass_fail_counts = pd.Series(["Pass" if x >= 15 else "Fail" for x in predictions]).value_counts()
+pie_fig = px.pie(names=pass_fail_counts.index, values=pass_fail_counts.values, title="Pass/Fail Ratio")
+st.plotly_chart(pie_fig, use_container_width=True)
+
+# --- Line Chart: Attendance vs. Assessments ---
+st.markdown("### 📈 Attendance vs Internal Scores")
+line_df = df[["Name", "Attendance_Percentage", "Internal_Assessment_1", "Internal_Assessment_2"]].sort_values(by="Attendance_Percentage")
+line_fig = go.Figure()
+line_fig.add_trace(go.Scatter(x=line_df["Attendance_Percentage"], y=line_df["Internal_Assessment_1"], mode='lines+markers', name='Internal 1'))
+line_fig.add_trace(go.Scatter(x=line_df["Attendance_Percentage"], y=line_df["Internal_Assessment_2"], mode='lines+markers', name='Internal 2'))
+line_fig.update_layout(xaxis_title='Attendance (%)', yaxis_title='Assessment Scores')
+st.plotly_chart(line_fig, use_container_width=True)
+
+# --- Upload New Data ---
 st.markdown("---")
 uploaded_file = st.file_uploader("📤 Upload updated student data (.csv)", type=["csv"])
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
     st.success("✅ Data updated successfully! Refresh the page to reload.")
-# Save the updated DataFrame to a new CSV file
     df.to_csv("updated_student_performance.csv", index=False)
     st.write("Updated data saved as 'updated_student_performance.csv'.")
-# Footer
-st.markdown("---")          
+
+# --- Footer ---
+st.markdown("---")
