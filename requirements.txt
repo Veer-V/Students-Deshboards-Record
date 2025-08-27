@@ -1,9 +1,8 @@
 pandas
 scikit-learn
-streamlit
-shap
 joblib
-plotly
 numpy
-matplotlib
-seaborn
+flask
+flask-cors
+streamlit
+plotly
